@@ -1,7 +1,9 @@
 /**
  * Real API Service — connects to the FastAPI backend (api.py).
- * The Vite dev server proxies /api/* → http://localhost:8000
+ * Connects directly to the deployed backend.
  */
+
+const BASE_URL = 'https://hackx-backend-hkkm.onrender.com';
 
 export interface AnalyzeParams {
     location: string;
@@ -107,7 +109,7 @@ export interface ForecastResult {
 export async function runAnalyze(
     params: AnalyzeParams
 ): Promise<{ job_id: string; status: string; data: AnalyzeResult }> {
-    const res = await fetch('/api/analyze', {
+    const res = await fetch(`${BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
@@ -121,7 +123,7 @@ export async function runAnalyze(
 }
 
 export async function runRiskAssessment(params: RiskParams): Promise<RiskResult> {
-    const res = await fetch('/api/risk', {
+    const res = await fetch(`${BASE_URL}/api/risk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
@@ -134,7 +136,7 @@ export async function runRiskAssessment(params: RiskParams): Promise<RiskResult>
 }
 
 export async function runForecast(params: ForecastParams): Promise<ForecastResult> {
-    const res = await fetch('/api/forecast', {
+    const res = await fetch(`${BASE_URL}/api/forecast`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
@@ -148,7 +150,7 @@ export async function runForecast(params: ForecastParams): Promise<ForecastResul
 
 export async function fetchLayer(jobId: string, layerName: string): Promise<GeoJSON.FeatureCollection | null> {
     try {
-        const res = await fetch(`/api/layers/${jobId}/${layerName}`);
+        const res = await fetch(`${BASE_URL}/api/layers/${jobId}/${layerName}`);
         if (!res.ok) return null;
         return await res.json();
     } catch {
@@ -158,7 +160,7 @@ export async function fetchLayer(jobId: string, layerName: string): Promise<GeoJ
 
 export async function fetchRiskZones(riskJobId: string): Promise<GeoJSON.FeatureCollection | null> {
     try {
-        const res = await fetch(`/api/risk-zones/${riskJobId}`);
+        const res = await fetch(`${BASE_URL}/api/risk-zones/${riskJobId}`);
         if (!res.ok) return null;
         return await res.json();
     } catch {
@@ -168,7 +170,7 @@ export async function fetchRiskZones(riskJobId: string): Promise<GeoJSON.Feature
 
 export async function fetchForecastZones(forecastJobId: string): Promise<GeoJSON.FeatureCollection | null> {
     try {
-        const res = await fetch(`/api/forecast-zones/${forecastJobId}`);
+        const res = await fetch(`${BASE_URL}/api/forecast-zones/${forecastJobId}`);
         if (!res.ok) return null;
         return await res.json();
     } catch {
@@ -178,7 +180,7 @@ export async function fetchForecastZones(forecastJobId: string): Promise<GeoJSON
 
 export async function checkHealth(): Promise<boolean> {
     try {
-        const res = await fetch('/api/health');
+        const res = await fetch(`${BASE_URL}/api/health`);
         return res.ok;
     } catch {
         return false;
@@ -202,8 +204,8 @@ export async function getCityCoords(cityName: string): Promise<[number, number]>
 
 export function getPipelineStages() {
     return [
-        { delay: 1000,  messages: ['> Resolving GAUL Level-2 boundary...'] },
-        { delay: 5000,  messages: ['> Boundary confirmed. Querying JRC Global Surface Water (80% persistence)...', '[OK]'] },
+        { delay: 1000, messages: ['> Resolving GAUL Level-2 boundary...'] },
+        { delay: 5000, messages: ['> Boundary confirmed. Querying JRC Global Surface Water (80% persistence)...', '[OK]'] },
         { delay: 15000, messages: ['> Building Sentinel-2 optical composites...', '> Running NDWI land-only Otsu threshold...', '[OK]'] },
         { delay: 30000, messages: ['> Building Sentinel-1 SAR composites...', '> Running adaptive VV dB threshold ([−20,−13] dB range)...', '[OK]'] },
         { delay: 50000, messages: ['> Fusing optical + SAR engines...', '> Applying slope (< 5°) + HAND (< 15m) false-positive filter...', '[OK]'] },
